@@ -11,7 +11,7 @@ pipeline{
                 stage('Build') {
 
                         steps {
-                                sh 'docker build -t nur02/my-image:latest .'
+                                sh 'docker build -t nur02/my-image .'
                         }
                 }
 
@@ -26,7 +26,7 @@ pipeline{
                 stage('Push') {
 
                         steps {
-                                sh 'docker push nur02/my-image:latest'
+                                sh 'docker push nur02/my-image'
                         }
                 }
          
