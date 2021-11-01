@@ -31,22 +31,27 @@ pipeline{
                 }
          
                 stage('DeployToProduction') {
-         
-                    steps {
-                         withCredentials([sshUserPrivateKey(
-                                 credentialsId: 'jenkins.shipit',
-                                 keyFileVariable: 'keyfile')] {
-                                     sh '''
-                                     ec2-user@54.199.248.76
-                                     cmd="docker ps"
-                                     ssh -i "$keyfile" -o StrictHostKeyChecking=no $ec2-user $cmd
-                                     '''
+                     steps {
+                        input 'Deploy to Production?'
+                        milestone(1)
+                        withCredentials([usernamePassword(credentialsId: 'webserver_login', usernameVariable: 'USERNAME', passwordVariable: 'USERPASS')]) {
+                            script {
+                                sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker pull nur02/my-image:${env.BUILD_NUMBER}\""
+                                try {
+                                    sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker stop nur02/my-image\""
+                                    sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker rm nur02/my-image\""
+                                } catch (err) {
+                                     echo: 'caught error: $err'
+                                }
+                                sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker run --restart always --name nur02/my-image -p 8080:80 -d nur02/my-image:${env.BUILD_NUMBER}\""
+                    }
+                }
+            }
+        }
+    }
+}
+
                      
                             
                             
-                            
-                    }
-                }
-             }
-         }   
-
+                       
