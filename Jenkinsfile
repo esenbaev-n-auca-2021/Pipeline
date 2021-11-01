@@ -30,6 +30,26 @@ pipeline{
                         }
                 }
          
+                
+                 stage('TestingOnDev') {
+                     steps {
+                        input 'Deploy to Staging?'
+                        milestone(1)
+                        withCredentials([usernamePassword(credentialsId: 'webserver_login', usernameVariable: 'USERNAME', passwordVariable: 'USERPASS')]) {
+                            script {
+                                sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$dev_ip \"docker pull nur02/my-image\""
+                                try {
+                                    sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$dev_ip \"docker stop final\""
+                                    sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$dev_ip \"docker rm final\""
+                                } catch (err) {
+                                     echo: 'caught error: $err'
+                                }
+                                sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker run --restart always --name final -p 8080:80 -d nur02/my-image\""
+                            }
+                        }
+                     }
+                 }
+                
                 stage('DeployToProduction') {
                      steps {
                         input 'Deploy to Production?'
