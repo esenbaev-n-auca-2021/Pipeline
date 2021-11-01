@@ -1,21 +1,21 @@
 pipeline{
 
-	agent any
+        agent any
 
-	environment {
-		DOCKERHUB_CREDENTIALS=credentials('docker_hub_login')
-	}
+        environment {
+                DOCKERHUB_CREDENTIALS=credentials('docker_hub_login')
+        }
 
-	stages {
+        stages {
 
-		stage('Build') {
+                stage('Build') {
 
-			steps {
-				sh 'docker build -t nur02/my-image:latest .'
-			}
-		}
+                        steps {
+                                sh 'docker build -t nur02/my-image:latest .'
+                        }
+                }
 
-				
+
                 stage('Login') {
 
                         steps {
@@ -23,18 +23,31 @@ pipeline{
                         }
                 }
 
-		stage('Push') {
+                stage('Push') {
 
-			steps {
-				sh 'docker push nur02/my-image:latest'
-			}
-		}
-	}
-        
-        post {
-            always {
-                sh 'docker logout'
-            }
-        }
+                        steps {
+                                sh 'docker push nur02/my-image:latest'
+                        }
+                }
 
-}
+
+                stage('DeployToProduction') {
+                    steps {
+                        input 'Deploy to Production?'
+                        milestone(1)
+                        withCredentials([usernamePassword(credentialsId: 'webserver_login', usernameVariable: 'USERNAME', passwordVariable: 'USERPASS')]) {
+                              script {
+                                 sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker pull nur02/my-image:${env.BUILD_NUMBER}\""
+                                 try {
+                                    sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker stop nut02/my-image\""
+                                    sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker rm nur02/my-image\""
+                                 } catch (err) {
+                                     echo: 'caught error: $err'
+                                 }
+                                 sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker run --restart always --name nur02/my-image -p 8080:80 -d nur02/my-image:${env.BUILD_NUMBER}\""
+                                }
+                       }
+                     }
+                 }
+          }
+          }
