@@ -40,7 +40,8 @@ pipeline{
                                sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker pull nur02/my-image:${env.BUILD_NUMBER}\""
                              }
                          }
-                    }    
+                    }  
+                }
                 stage('DeployToProduction') {
                     steps {
                         input 'Deploy to Production?'
