@@ -33,7 +33,7 @@ pipeline{
                 stage('TestingOnDev') {
                         steps {
                                 echo 'Connect to the Dev server'
-                                sh 'ssh ec2-user@54.199.248.76'
+                                sh 'ssh -tt ec2-user@54.199.248.76'
                                 sh 'docker pull nur02/my-image'
                                 sh 'docker run -d -p 8080:80 nur02/my-image'
                         }
