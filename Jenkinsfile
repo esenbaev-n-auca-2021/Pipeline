@@ -29,25 +29,28 @@ pipeline{
                                 sh 'docker push nur02/my-image:latest'
                         }
                 }
-
+         
+                stage('TestingOnDev') {
+                        steps {
+                                echo 'Connect to the Dev server'
+                                sh 'ssh ec2-user@54.199.248.76'
+                                sh 'docker pull nur02/my-image'
+                                sh 'docker run -d -p 8080:80 nur02/my-image'
+                        }
+                }
 
                 stage('DeployToProduction') {
                     steps {
                         input 'Deploy to Production?'
                         milestone(1)
-                        withCredentials([usernamePassword(credentialsId: 'webserver_login', usernameVariable: 'USERNAME', passwordVariable: 'USERPASS')]) {
-                              script {
-                                 sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker pull nur02/my-image:${env.BUILD_NUMBER}\""
-                                 try {
-                                    sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker stop nut02/my-image\""
-                                    sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker rm nur02/my-image\""
-                                 } catch (err) {
-                                     echo: 'caught error: $err'
-                                 }
-                                 sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker run --restart always --name nur02/my-image -p 8080:80 -d nur02/my-image:${env.BUILD_NUMBER}\""
-                                }
-                       }
-                     }
-                 }
-          }
-          }
+                        echo 'Connect to the PROD server'
+                        sh 'ssh ec2-user@18.181.35.172'
+                        sh 'docker pull nur02/my-image'
+                        sh 'docker run -d -p 8080:80 nur02/my-image'
+                            
+                            
+                            
+                    }
+                }
+             }
+         }   
