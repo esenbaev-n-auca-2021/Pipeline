@@ -43,7 +43,7 @@ pipeline{
                                 } catch (err) {
                                      echo: 'caught error: $err'
                                 }
-                                sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker run --restart always --name nur02/my-image -p 8080:80 -d nur02/my-image/nur02/my-image\""
+                                sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker run --restart always --name nur02/my-image -p 8080:80 -d nur02/my-image\""
                     }
                 }
             }
